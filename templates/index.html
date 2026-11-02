@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FPL Custom FDR Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; }
+        h1 { color: #37003c; margin-bottom: 20px; }
+        
+        /* Gjør skjemaet horisontalt med flexbox */
+        form { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+            align-items: flex-end; 
+            margin-bottom: 20px; 
+        }
+        
+        .form-group { 
+            flex: 1; 
+            min-width: 160px; 
+        }
+        
+        .season-group {
+            flex: 1.8;
+            min-width: 260px;
+        }
+
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; }
+        input, select { width: 100%; padding: 8px; box-sizing: border-box; }
+        small { display: block; margin-top: 4px; color: #666; font-size: 10px; line-height: 1.2; }
+        
+        button { 
+            background: #00ff87; 
+            color: #37003c; 
+            border: none; 
+            padding: 9px 20px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border-radius: 4px; 
+            height: 38px;
+            white-space: nowrap;
+        }
+        button:hover { background: #01e67a; }
+        
+        .result { margin-top: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        img { max-width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+    <h1>Fantasy Premier League - Custom FDR</h1>
+    
+    <form method="post">
+        <div class="form-group">
+            <label for="upcoming_gws">Upcoming GWs:</label>
+            <input type="number" id="upcoming_gws" name="upcoming_gws" value="{{ upcoming_gws }}" min="1" max="19">
+        </div>
+
+        <div class="form-group">
+            <label for="form_gws">Form GWs:</label>
+            <input type="number" id="form_gws" name="form_gws" value="{{ form_gws }}" min="1" max="10">
+        </div>
+
+        <div class="form-group">
+            <label for="position">Position:</label>
+            <select id="position" name="position">
+                <option value="ALL" {% if position == "ALL" %}selected{% endif %}>ALL (Total)</option>
+                <option value="GK" {% if position == "GK" %}selected{% endif %}>GK (Goalkeeper)</option>
+                <option value="DEF" {% if position == "DEF" %}selected{% endif %}>DEF (Defender)</option>
+                <option value="MID" {% if position == "MID" %}selected{% endif %}>MID (Midfielder)</option>
+                <option value="FWD" {% if position == "FWD" %}selected{% endif %}>FWD (Forward)</option>
+            </select>
+        </div>
+
+        <div class="season-group">
+            <label for="season_weight">Season Weight (0.0 - 1.0):</label>
+            <input type="number" id="season_weight" name="season_weight" value="{{ season_weight }}" min="0" max="1" step="0.1">
+            <small>Balances long-term season performance vs. recent form. For example, 0.8 means you care more about overall season performance, while 0.2 heavily favors recent form.</small>
+        </div>
+
+        <div>
+            <button type="submit">Generate FDR</button>
+        </div>
+    </form>
+
+    {% if plot_url %}
+    <div class="result">
+        <h2>Result:</h2>
+        <img src="data:image/png;base64,{{ plot_url }}" alt="FDR Heatmap">
+    </div>
+    {% endif %}
+</body>
+</html>
