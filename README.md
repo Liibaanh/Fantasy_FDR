@@ -47,12 +47,3 @@ When you click **"Generate FDR"**, the application processes the data and output
   * **Red cells:** Indicate difficult fixtures (opponents conceding few points).
 * **Cell Content:** Each cell displays the opponent's short name along with whether the match is home or away—for example, `MUN (H)` for a home match against Manchester United, or `CHE (A)` for an away match against Chelsea.
 * **Team Sorting:** Teams on the vertical axis are automatically sorted based on the cumulative fixture difficulty of the selected upcoming gameweeks, putting teams with the easiest run at the top.
-
----
-
-## Getting Started with Docker
-
-1. **Clone the repository:**
-   ```bash
-   git clone <your-repo-url>
-   cd Fantasy_FDR
