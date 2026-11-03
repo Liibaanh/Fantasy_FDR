@@ -1,6 +1,7 @@
 import io
 import os
 import base64
+from functools import lru_cache
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -17,6 +18,33 @@ templates = Jinja2Templates(directory="templates")
 
 BASE = "https://fantasy.premierleague.com/api"
 POS = ["GK", "DEF", "MID", "FWD"]
+
+# --- Helper Functions with Caching ---
+
+@lru_cache(maxsize=1)
+def get_static_data():
+    """Fetches and caches bootstrap-static data (teams, players, events)."""
+    res = requests.get(f"{BASE}/bootstrap-static/")
+    res.raise_for_status()
+    return res.json()
+
+@lru_cache(maxsize=1)
+def get_fixtures_data():
+    """Fetches and caches fixture data."""
+    res = requests.get(f"{BASE}/fixtures/")
+    res.raise_for_status()
+    return res.json()
+
+@lru_cache(maxsize=38)
+def get_live_gw_data(gw: int):
+    """Fetches and caches live match data for finished gameweeks."""
+    url = f"{BASE}/event/{gw}/live/"
+    res = requests.get(url)
+    if res.status_code == 200:
+        return res.json()
+    return None
+
+# --- Routes ---
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
@@ -40,29 +68,28 @@ async def generate_fdr(
 ):
     position = position.upper()
     
-    # --- 1. Fetch static data ---
-    static = requests.get(f"{BASE}/bootstrap-static/").json()
+    # --- 1. Fetch static & fixture data (Cached) ---
+    static = get_static_data()
     teams = {t["id"]: t["name"] for t in static["teams"]}
     short = {t["id"]: t["short_name"] for t in static["teams"]}
 
     players = pd.DataFrame(static["elements"])[["id", "team", "element_type"]]
     players["pos"] = players.element_type.map(dict(zip(range(1, 5), POS)))
 
-    fixtures = pd.DataFrame(requests.get(f"{BASE}/fixtures/").json())
+    fixtures = pd.DataFrame(get_fixtures_data())
     fixtures = fixtures[["id", "event", "team_h", "team_a"]].set_index("id")
 
     finished = [e["id"] for e in static["events"] if e["finished"]]
     upcoming = [e["id"] for e in static["events"] if not e["finished"]][:upcoming_gws]
 
-    # --- 2. Fetch match data ---
+    # --- 2. Fetch match data (Cached per GW) ---
     rows = []
     for gw in finished:
-        url_live = f"{BASE}/event/{gw}/live/"
-        res = requests.get(url_live)
-        if res.status_code != 200:
+        live_json = get_live_gw_data(gw)
+        if not live_json:
             continue
         
-        live_data = res.json().get("elements", [])
+        live_data = live_json.get("elements", [])
         for el in live_data:
             player_id = el["id"]
             for ex in el.get("explain", []):
