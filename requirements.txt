@@ -4,6 +4,7 @@ pandas
 numpy
 matplotlib
 seaborn
-requests
+requests>=2.31
 jinja2
 python-multipart
+pytest>=8.0
