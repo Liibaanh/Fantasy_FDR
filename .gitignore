@@ -224,5 +224,6 @@ __marimo__/
 *.xls
 *.xlsm
 
-#ignore DS_Store
+#ignore DS_Store og /data
 .DS_Store
+/data
